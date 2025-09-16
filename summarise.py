@@ -15,6 +15,7 @@ st.subheader('Summarize Youtube videos')
 st.sidebar.title("Imprtant Information")
 st.sidebar.info("Some Youtube videos may not work due to restrictions on extracting content. In that case if error occurs, please try with another url or video.")
 st.sidebar.info("Large videos may take longer time to process.")
+st.sidebar.info("Your IP may get blocked by Youtube if you make too many requests in a short period of time. If that happens, please wait for some time before trying again.")
 
 groq_api_key = st.secrets["GROQ_API_KEY"]
 
@@ -104,3 +105,4 @@ if st.button("Clear"):
     st.session_state["summary"] = ""
     st.session_state["url"] = ""
     st.rerun()
+
