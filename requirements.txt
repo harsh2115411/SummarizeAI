@@ -13,4 +13,5 @@ yt-dlp
 tiktoken
 requests
 youtube-transcript-api
+transformers
 urllib3
