@@ -10,7 +10,6 @@ import yt_dlp
 from langchain.schema import Document
 from langchain_community.document_loaders import WebBaseLoader
 
-# --- Streamlit UI ---
 st.set_page_config(page_title="LangChain: Summarize Text From YT, Webpage", page_icon="🦜")
 st.title("🦜 SUMMARIZE AI ")
 st.subheader('Summarize URL or Youtube video')
@@ -18,23 +17,17 @@ st.sidebar.title("Imprtant Information")
 st.sidebar.info("Some web url and Youtube videos may not work due to restrictions on extracting content. In that case if error occurs, please try with another url or video.")
 st.sidebar.info("Large videos or web pages may take longer time to process.")
 
-# --- API Key Input ---
 groq_api_key = st.secrets["GROQ_API_KEY"]
 
-# --- Session State ---
 if "summary" not in st.session_state:
     st.session_state["summary"] = ""
 if "url" not in st.session_state:
     st.session_state["url"] = ""
 
-# --- Input field with session state ---
 generic_url = st.text_input("URL", value=st.session_state["url"], label_visibility="collapsed")
 
-
-# --- LLM Setup ---
 llm = ChatGroq(model="llama-3.1-8b-instant", groq_api_key=groq_api_key)
 
-# --- Prompt ---
 map_prompt_template = """
 Summarize the following content in 150 words:
 {text}
@@ -56,7 +49,6 @@ if st.button("Summarize the Content from YT or Website"):
     else:
         try:
             with st.spinner("Processing..."):
-                # --- Load data ---
                 if "youtube.com" in generic_url:
                     parsed_url = urlparse(generic_url)
                     if "youtube" in parsed_url.netloc:
@@ -82,14 +74,12 @@ if st.button("Summarize the Content from YT or Website"):
                     loader = WebBaseLoader(generic_url)
                     docs = loader.load()
                  
-                # --- Split large documents ---
                 text_splitter = RecursiveCharacterTextSplitter(
-                    chunk_size=1500,
-                    chunk_overlap=200
+                    chunk_size=3000,
+                    chunk_overlap=300
                 )
                 split_docs = text_splitter.split_documents(docs)
 
-                # --- Map Reduce Summarization ---
                 chain = load_summarize_chain(
                     llm,
                     chain_type="map_reduce",
@@ -98,19 +88,17 @@ if st.button("Summarize the Content from YT or Website"):
                 )
                 output_summary = chain.run(split_docs)
 
-                # --- Save to session state ---
                 st.session_state["summary"] = output_summary
                 st.session_state["url"] = generic_url
 
         except Exception as e:
             st.exception(f"Exception: {e}")
 
-# --- Show summary if available ---
 if st.session_state["summary"]:
     st.success(st.session_state["summary"])
 
-# --- Clear Button ---
 if st.button("Clear"):
     st.session_state["summary"] = ""
-    st.session_state["url"] = ""   # clears the input box
+    st.session_state["url"] = ""  
     st.rerun()
+
