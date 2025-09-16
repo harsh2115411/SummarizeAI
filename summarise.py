@@ -10,12 +10,12 @@ import yt_dlp
 from langchain.schema import Document
 from langchain_community.document_loaders import WebBaseLoader
 
-st.set_page_config(page_title="LangChain: Summarize Text From YT, Webpage", page_icon="🦜")
+st.set_page_config(page_title="LangChain: Summarize Text For Youtube Videos", page_icon="🦜")
 st.title("🦜 SUMMARIZE AI ")
-st.subheader('Summarize URL or Youtube video')
+st.subheader('Summarize Youtube videos')
 st.sidebar.title("Imprtant Information")
-st.sidebar.info("Some web url and Youtube videos may not work due to restrictions on extracting content. In that case if error occurs, please try with another url or video.")
-st.sidebar.info("Large videos or web pages may take longer time to process.")
+st.sidebar.info("Some Youtube videos may not work due to restrictions on extracting content. In that case if error occurs, please try with another url or video.")
+st.sidebar.info("Large videos may take longer time to process.")
 
 groq_api_key = st.secrets["GROQ_API_KEY"]
 
@@ -25,6 +25,7 @@ if "url" not in st.session_state:
     st.session_state["url"] = ""
 
 generic_url = st.text_input("URL", value=st.session_state["url"], label_visibility="collapsed")
+
 
 llm = ChatGroq(model="llama-3.1-8b-instant", groq_api_key=groq_api_key)
 
@@ -49,6 +50,7 @@ if st.button("Summarize the Content from YT or Website"):
     else:
         try:
             with st.spinner("Processing..."):
+
                 if "youtube.com" in generic_url:
                     parsed_url = urlparse(generic_url)
                     if "youtube" in parsed_url.netloc:
@@ -71,14 +73,15 @@ if st.button("Summarize the Content from YT or Website"):
                         st.warning(f"YouTubeTranscriptApi failed: {e}")       
                     
                 else:
-                    loader = WebBaseLoader(generic_url)
-                    docs = loader.load()
+                    st.error("Something went wrong. Please try with another URL.")
                  
+            
                 text_splitter = RecursiveCharacterTextSplitter(
-                    chunk_size=3000,
-                    chunk_overlap=300
+                    chunk_size=1500,
+                    chunk_overlap=200
                 )
                 split_docs = text_splitter.split_documents(docs)
+
 
                 chain = load_summarize_chain(
                     llm,
@@ -88,17 +91,19 @@ if st.button("Summarize the Content from YT or Website"):
                 )
                 output_summary = chain.run(split_docs)
 
+
                 st.session_state["summary"] = output_summary
                 st.session_state["url"] = generic_url
 
         except Exception as e:
             st.exception(f"Exception: {e}")
 
+
 if st.session_state["summary"]:
     st.success(st.session_state["summary"])
 
+
 if st.button("Clear"):
     st.session_state["summary"] = ""
-    st.session_state["url"] = ""  
+    st.session_state["url"] = ""   
     st.rerun()
-
